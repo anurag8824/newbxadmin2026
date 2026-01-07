@@ -244,13 +244,7 @@ const AllEventListInMatch = () => {
 
   const currentMatch = (match: IMatch) => {
     dispatch(setCurrentMatch(match))
-    const isAdminPath = window.location.pathname.includes("admin")
-
-  const redirectUrl = isAdminPath
-    ? `/admin/odds/${match.matchId}`
-    : `/odds/${match.matchId}`
-
-  window.location.href = redirectUrl
+    window.location.href = (`/odds/${match.matchId}`)
   }
 
   return (

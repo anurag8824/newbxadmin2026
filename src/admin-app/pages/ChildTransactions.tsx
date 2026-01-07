@@ -18,7 +18,6 @@ interface LedgerEntry {
   narration: string;
   cname: string;
   _id: string;
-  crole: any;
 }
 
 interface GroupedEntry {
@@ -27,7 +26,6 @@ interface GroupedEntry {
   settled: number;
   final: number;
   ChildId: string;
-  Crole : any;
 }
 
 const ChildTransactions = () => {
@@ -83,11 +81,10 @@ const ChildTransactions = () => {
         ? data[0] // for admin
         : data[0]; // for others
 
-       // ✅ REMOVE entries with ChildId null / undefined
+         // ✅ REMOVE entries with ChildId null / undefined
 const flatData = flatDataMain.filter(
   (entry: any) => entry.ChildId !== null && entry.ChildId !== undefined
 );
-
 
     const settledMap: Record<string, number> = {};
     flatData.forEach((entry: any) => {
@@ -99,13 +96,12 @@ const flatData = flatDataMain.filter(
 
     const activeMap: Record<
       string,
-      { username: string; positive: number; negative: number , crole:any }
+      { username: string; positive: number; negative: number }
     > = {};
     flatData.forEach((entry: any) => {
       if (!entry.settled) {
         const id = entry.ChildId;
         const username = entry.username + " (" + entry.cname + ")";
-        const crole = entry.crole;
 
         // Compute money based on role
         // const money = userState.user.role === "dl" ? entry.money - entry.commissiondega : entry.money;
@@ -117,7 +113,7 @@ const flatData = flatDataMain.filter(
         // const money =  entry.money + entry.commissiondega ;
 
         if (!activeMap[id]) {
-          activeMap[id] = { username, positive: 0, negative: 0 , crole};
+          activeMap[id] = { username, positive: 0, negative: 0 };
         }
 
         if (money > 0) {
@@ -132,7 +128,7 @@ const flatData = flatDataMain.filter(
     const denaArray: GroupedEntry[] = [];
 
     Object.entries(activeMap).forEach(
-      ([ChildId, { username, positive, negative , crole  }]) => {
+      ([ChildId, { username, positive, negative }]) => {
         const rawAmount = positive - negative;
         console.log(positive, negative, rawAmount, username);
         const settledAmount = settledMap[ChildId] || 0;
@@ -146,7 +142,6 @@ const flatData = flatDataMain.filter(
           settled: settledAmount,
           final: netFinal,
           ChildId,
-          Crole : crole
         };
 
         console.log(rawAmount - settledAmount, "raww amountt");
@@ -370,7 +365,7 @@ const flatData = flatDataMain.filter(
                     </div>
 
                     {/* Remark */}
-                    <div className="col-12 col-md-6 col-lg-4 d-none">
+                    <div className="col-12 col-md-6 col-lg-4">
                       <label
                         htmlFor="advanced_search_remark"
                         className="form-label"
@@ -418,7 +413,6 @@ const flatData = flatDataMain.filter(
                             settleamount,
                             remark,
                             type: modalType,
-                            urole: selectedClient.Crole
                           };
 
                           try {
@@ -773,9 +767,9 @@ const flatData = flatDataMain.filter(
                                           className="small p-0"
                                           style={{ zIndex: 2 }}
                                         >
-                                           {row?.betGame ? row?.betGame == "CASINO" 
+                                          {row?.betGame == "CASINO"
                                             ? "CASINO"
-                                            : row?.matchName : row?.narration}
+                                            : row?.matchName}
                                         </span>
                                       </td>
 

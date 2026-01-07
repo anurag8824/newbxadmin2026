@@ -82,13 +82,12 @@ const ClientTransactions = () => {
       userState.user.role === "admin"
         ? data[0] // for admin
         : data[0]; // for others
-
-       // ✅ REMOVE entries with ChildId null / undefined
+        
+         // ✅ REMOVE entries with ChildId null / undefined
 const flatData = flatDataMain.filter(
   (entry: any) => entry.ChildId !== null && entry.ChildId !== undefined
 );
 
-        
 
     const settledMap: Record<string, number> = {};
     flatData.forEach((entry: any) => {
@@ -384,7 +383,7 @@ const flatData = flatDataMain.filter(
                       ? "Agent Transactions"
                       : "Client Transactions"
                   }
-                />(Role)
+                />
                 <div className="gx-px-2 gx-pt-3 gx-bg-flex">
                   <form id="advanced_search" className="row g-3">
                     {/* Client */}
@@ -486,7 +485,7 @@ const flatData = flatDataMain.filter(
                     </div>
 
                     {/* Remark */}
-                    <div className="col-12 col-md-6 col-lg-4 d-none">
+                    <div className="col-12 col-md-6 col-lg-4">
                       <label
                         htmlFor="advanced_search_remark"
                         className="form-label"
@@ -914,9 +913,9 @@ const flatData = flatDataMain.filter(
                                           className="small p-0"
                                           style={{ zIndex: 2 }}
                                         >
-                                          {row?.betGame ? row?.betGame == "CASINO" 
+                                          {row?.betGame == "CASINO"
                                             ? "CASINO"
-                                            : row?.matchName : row?.narration}
+                                            : row?.matchName}
                                         </span>
                                       </td>
 
