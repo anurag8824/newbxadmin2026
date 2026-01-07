@@ -6,6 +6,7 @@ import { useAppSelector } from "../../../redux/hooks";
 import { selectUserData } from "../../../redux/actions/login/loginSlice";
 import { CustomLink } from "../../../pages/_layout/elements/custom-link";
 import TopBackHeader from "../TopBackHeader";
+import { useNavigate } from "react-router-dom";
 
 interface LedgerItem {
   _id: string;
@@ -17,8 +18,11 @@ interface LedgerItem {
 const MyLedger = () => {
   const [tableData, setTableData] = React.useState<LedgerItem[]>([]);
   const userState = useAppSelector(selectUserData);
+  const navigate = useNavigate(); 
 
   console.log(userState, "myledgererr");
+
+
 
   React.useEffect(() => {
     betService.oneledger().then((res: AxiosResponse<any>) => {
@@ -180,7 +184,7 @@ const getProcessedRowsolddd = () => {
       if (!groupedMap.has(key)) {
         groupedMap.set(key, {
           ...item,
-          narration: item.matchName,
+          narration: item.betGame ? item.betGame === "CASINO" ? "Casino" : item.matchName : item.narration,
         });
       } else {
         const existing = groupedMap.get(key);
@@ -230,13 +234,27 @@ const getProcessedRowsolddd = () => {
         credit,
         debit,
         balance,
-        narration: item.matchName,
+        narration: item.betGame ? item.betGame === "CASINO" ? "Casino" : item.matchName : item.narration,
         date: item.createdAt,
         Fancy: item.Fancy,
       });
     });
+
+    // 🔥 FINAL SORTING LOGIC
+result.sort((a, b) => {
+  const isASettlement = a.narration === "Settlement";
+  const isBSettlement = b.narration === "Settlement";
+
+  // 1️⃣ Settlement always on top
+  if (isASettlement && !isBSettlement) return -1;
+  if (!isASettlement && isBSettlement) return 1;
+
+  // 2️⃣ Otherwise date-wise DESC
+  return new Date(b.date).getTime() - new Date(a.date).getTime();
+});
+
   
-    return result.reverse();
+    return result;
   };
   
   
@@ -257,8 +275,13 @@ const getProcessedRowsolddd = () => {
   // const totalDena = processedRows.reduce((sum, row) => sum + Math.abs(row.debit), 0); // debit might be negative
   // const finalBalancetop = totalLena - totalDena;
 
+
+  React.useEffect(() => {
+     navigate(`/admin/ledger-client-transactions/${userState?.user.parentId}/${userState?.user?._id}`)
+  }, [userState]);
+
   return (
-    <div className="body-wrap p-md-4 pt-2">
+    <div className="body-wrap p-md-4 pt-2 d-none">
       <TopBackHeader name="My Ledger" />
 
       <div>

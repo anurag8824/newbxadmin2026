@@ -18,7 +18,7 @@ interface LedgerEntry {
   narration: string;
   cname: string;
   _id: string;
-  pidd: any;
+  crole: any;
 }
 
 interface GroupedEntry {
@@ -27,10 +27,10 @@ interface GroupedEntry {
   settled: number;
   final: number;
   ChildId: string;
-  PID: any;
+  Crole : any;
 }
 
-const ClientTransactions = () => {
+const ChaMyledgerChildTxnCopy = () => {
   const userState = useAppSelector(selectUserData);
   const [loading, setLoading] = React.useState(false);
 
@@ -88,7 +88,6 @@ const flatData = flatDataMain.filter(
   (entry: any) => entry.ChildId !== null && entry.ChildId !== undefined
 );
 
-        
 
     const settledMap: Record<string, number> = {};
     flatData.forEach((entry: any) => {
@@ -100,13 +99,13 @@ const flatData = flatDataMain.filter(
 
     const activeMap: Record<
       string,
-      { username: string; positive: number; negative: number; pidd: any }
+      { username: string; positive: number; negative: number , crole:any }
     > = {};
     flatData.forEach((entry: any) => {
       if (!entry.settled) {
         const id = entry.ChildId;
         const username = entry.username + " (" + entry.cname + ")";
-        const pidd = entry?.ParentId;
+        const crole = entry.crole;
 
         // Compute money based on role
         // const money = userState.user.role === "dl" ? entry.money - entry.commissiondega : entry.money;
@@ -118,7 +117,7 @@ const flatData = flatDataMain.filter(
         // const money =  entry.money + entry.commissiondega ;
 
         if (!activeMap[id]) {
-          activeMap[id] = { username, positive: 0, negative: 0, pidd };
+          activeMap[id] = { username, positive: 0, negative: 0 , crole};
         }
 
         if (money > 0) {
@@ -133,7 +132,7 @@ const flatData = flatDataMain.filter(
     const denaArray: GroupedEntry[] = [];
 
     Object.entries(activeMap).forEach(
-      ([ChildId, { username, positive, negative, pidd }]) => {
+      ([ChildId, { username, positive, negative , crole  }]) => {
         const rawAmount = positive - negative;
         console.log(positive, negative, rawAmount, username);
         const settledAmount = settledMap[ChildId] || 0;
@@ -147,7 +146,7 @@ const flatData = flatDataMain.filter(
           settled: settledAmount,
           final: netFinal,
           ChildId,
-          PID: pidd,
+          Crole : crole
         };
 
         console.log(rawAmount - settledAmount, "raww amountt");
@@ -172,13 +171,13 @@ const flatData = flatDataMain.filter(
     React.useState<any>();
 
   const ctid = useParams().id;
-  const roleonly: any = useParams().role;
+
+  const sendId = useParams().pid;
 
   React.useEffect(() => {
-    if (!ctid) return;
     setLoading(true);
     betService
-      .oneledger()
+      .pponeledger(sendId)
       .then((res: AxiosResponse<{ data: LedgerEntry[][] }>) => {
         setListData(res?.data?.data[0]);
         const { lenaArray, denaArray } = processLedgerData(res?.data?.data);
@@ -191,80 +190,7 @@ const flatData = flatDataMain.filter(
       .finally(() => {
         setLoading(false); // 👈 stop loading
       });
-  }, [userState, ctid]);
-
-  React.useEffect(() => {
-    if (ctid) return; // agar ctid hai to yeh effect skip karo
-    const fetchRecursiveLedger = async (
-      ids: string[],
-      visited = new Set<string>()
-    ) => {
-      let allEntries: any[] = [];
-
-      for (const id of ids) {
-        if (visited.has(id)) continue; // avoid infinite loops
-        visited.add(id);
-
-        try {
-          const res = await betService.pponeledger(id);
-          const data = res?.data?.data || [];
-
-          allEntries.push(...data.flat());
-
-          // Extract next-level ChildIds
-          const nextIds = data
-            .flat()
-            .map((item: any) => item.ChildId)
-            .filter(Boolean);
-
-          if (nextIds.length > 0) {
-            const deeper = await fetchRecursiveLedger(nextIds, visited);
-            allEntries.push(...deeper);
-          }
-        } catch (err) {
-          console.error("Error in recursive ledger for", id, err);
-        }
-      }
-
-      return allEntries;
-    };
-
-    const loadLedgerData = async () => {
-      setLoading(true); // ✅ start loading
-      try {
-        // Step 1: top-level ledger
-        const res = await betService.oneledger();
-        const topData = res?.data?.data || [];
-
-        const { lenaArray, denaArray } = processLedgerData(topData);
-        setLena(lenaArray);
-        setListData(topData[0] || []); // assuming first set is the main list
-        setDena(denaArray);
-
-        // Step 2: collect all top-level ChildIds
-        const allIds = [...lenaArray, ...denaArray].map((x) => x.ChildId);
-
-        // Step 3: recursively fetch all sub-ledgers until fully resolved
-        const recursiveEntries = await fetchRecursiveLedger(allIds);
-
-        if (recursiveEntries.length > 0) {
-          // Step 4: merge with existing and process again
-          const merged = [...topData.flat(), ...recursiveEntries];
-          const { lenaArray: finalLena, denaArray: finalDena } =
-            processLedgerData([merged]);
-          setLena(finalLena);
-          setDena(finalDena);
-          setListData(merged);
-        }
-      } catch (error) {
-        console.error("Recursive Ledger Load Error:", error);
-      } finally {
-        setLoading(false); // ✅ stop loading once everything finishes
-      }
-    };
-
-    loadLedgerData();
-  }, [userState, roleonly, ctid]);
+  }, [userState, ctid, sendId]);
 
   const combined = [...lena, ...dena];
 
@@ -282,7 +208,7 @@ const flatData = flatDataMain.filter(
       setSelectedClientListFiltered(defaultList);
       setHasDefaultSet(true); // ab dobara set nahi hoga
     }
-  }, [ctid, combined, listData, roleonly]);
+  }, [ctid, combined, listData, sendId]);
 
   console.log("Combined Data:", combined);
 
@@ -291,13 +217,7 @@ const flatData = flatDataMain.filter(
   const handleSelectChange = (e: any) => {
     const selectedId = e.target.value;
     const newClient = combined?.find((item) => item.ChildId === selectedId);
-
     setSelectedClient(newClient);
-    console.log(newClient, selectedClient, "seslljj");
-
-    navigate(
-      `/admin/client-transactions/${newClient?.PID}/${newClient?.ChildId}`
-    );
 
     const newClientList = listData?.filter(
       (item) => item.ChildId === selectedId
@@ -311,44 +231,23 @@ const flatData = flatDataMain.filter(
 
   // 🎯 Step 4: Filter logic when modalType changes
   React.useEffect(() => {
-    // if (!selectedClientList) return;
+    if (!selectedClientList) return;
 
     if (modalTypeF === "" || modalTypeF === "All") {
       // Show all if "All" selected
       setSelectedClientListFiltered(selectedClientList);
     } else {
       // Filter by settletype
-      const filtered = selectedClientList?.filter(
+      const filtered = selectedClientList.filter(
         (item: any) => item.settletype === modalTypeF
       );
       setSelectedClientListFiltered(filtered);
     }
-  }, [modalTypeF, selectedClientList, roleonly, ctid]);
+  }, [modalTypeF, selectedClientList]);
 
   console.log(selectedClientList, "selelcteddClient list");
 
-  // ✅ Map roleonly → username pattern
-  const rolePatterns: Record<any, any> = {
-    sadmin: "ADM",
-    suadmin: "AD",
-    smdl: "MA",
-    mdl: "SA",
-    dl: "A",
-    user: "CL",
-  };
-
-  // ✅ Determine which usernames to include
-  const pattern = rolePatterns[roleonly?.toLowerCase()] || "";
-
-  // ✅ Filter combined data based on username prefix (starts with)
-  const filteredCombined = pattern
-    ? combined?.filter((item) =>
-        item?.agent?.toUpperCase().startsWith(pattern.toUpperCase())
-      )
-    : combined;
-
   const navigate = useNavigate();
-
   const handleDelete = (id: any) => {
     console.log("delete clicked", id);
     betService
@@ -362,7 +261,6 @@ const flatData = flatDataMain.filter(
         console.error("Error deleting entry", err);
       });
   };
-
   return (
     <div className="container-fluid ">
       <div className="row row-center">
@@ -370,23 +268,9 @@ const flatData = flatDataMain.filter(
           <div className="row">
             <div className="card card-bordered gx-card">
               <div className="card-body">
-                <TopBackHeader
-                  name={
-                    roleonly == "sadmin"
-                      ? "Admin Transactions"
-                      : roleonly == "suadmin"
-                      ? "Sub Admin Transactions"
-                      : roleonly == "smdl"
-                      ? "Master Transactions"
-                      : roleonly == "mdl"
-                      ? "Super Transactions"
-                      : roleonly == "dl"
-                      ? "Agent Transactions"
-                      : "Client Transactions"
-                  }
-                />(Role)
+                <TopBackHeader name="MY Ledger" />
                 <div className="gx-px-2 gx-pt-3 gx-bg-flex">
-                  <form id="advanced_search" className="row g-3">
+                  <form id="advanced_search" className="row g-3 d-none">
                     {/* Client */}
                     <div className="col-12 col-md-6 col-lg-4">
                       <label
@@ -402,7 +286,7 @@ const flatData = flatDataMain.filter(
                         onChange={handleSelectChange}
                       >
                         <option value="">Select User</option>
-                        {filteredCombined.map((item, index) => (
+                        {combined.map((item, index) => (
                           <option key={index} value={item.ChildId}>
                             {item.agent}
                           </option>
@@ -504,8 +388,8 @@ const flatData = flatDataMain.filter(
                     {/* Submit Button */}
                     <div className="col-12">
                       <button
-                        className="btn btn-success"
                         disabled={loading}
+                        className="btn btn-success"
                         onClick={async () => {
                           if (!selectedClient) return;
 
@@ -534,6 +418,7 @@ const flatData = flatDataMain.filter(
                             settleamount,
                             remark,
                             type: modalType,
+                            urole: selectedClient.Crole
                           };
 
                           try {
@@ -561,9 +446,7 @@ const flatData = flatDataMain.filter(
 
                   {/* === CLIENT DETAILS SECTION === */}
                   {selectedClient && (
-                  
-
-                    <div className="rows d-none d-flexxxxxx g-2 p-3 mb-3  rounded bg-light">
+                    <div className="rows d-flex g-2 p-3 mb-3  rounded bg-light">
                       <div className="col-4 col-md-4">
                         <span
                           className={`fw-bold ${
@@ -604,16 +487,12 @@ const flatData = flatDataMain.filter(
                           0
                             ? "(Dena)"
                             : "(Lena)"}
-                          {/* {(
-                            Math.abs(selectedClient?.amount) +
-                            Math.abs(selectedClient?.settled)
-                          ).toFixed()} */}
                         </span>
                       </div>
                     </div>
                   )}
 
-                  <div className="col-12 d-none  col-md-6 col-lg-4 mb-4">
+                  <div className="col-12 col-md-6 col-lg-4 mb-4 d-none">
                     <label
                       htmlFor="advanced_search_paymentType"
                       className="form-label"
@@ -648,7 +527,7 @@ const flatData = flatDataMain.filter(
                     <div className="row overflow-auto mb-20">
                       <div className="col-sm-12">
                         <table
-                          className="table d-none table-striped table-bordered LedgerList dataTable no-footer"
+                          className="table table-striped table-bordered LedgerList dataTable no-footer"
                           id="ledger"
                           style={{ minWidth: 700, width: 1110 }}
                           role="grid"
@@ -696,16 +575,7 @@ const flatData = flatDataMain.filter(
                               >
                                 Debit
                               </th>
-                              {/* <th
-                        className="p-1 small text-center  no-sort sorting_disabled"
-                        style={{
-                          width: 97,
-                          backgroundColor: "#0f2327",
-                          color: "white",
-                        }}
-                      >
-                        Balance
-                      </th> */}
+
                               <th
                                 className="p-1 small text-center  no-sort sorting_disabled"
                                 style={{
@@ -738,27 +608,7 @@ const flatData = flatDataMain.filter(
                                 Balance
                               </th>
 
-                              <th
-                                className="p-1 small no-sort sorting_disabled"
-                                style={{
-                                  width: 127,
-                                  backgroundColor: "#0f2327",
-                                  color: "white",
-                                }}
-                              >
-                                Done
-                              </th>
-
-                              <th
-                                className="p-1 small no-sort sorting_disabled"
-                                style={{
-                                  width: 127,
-                                  backgroundColor: "#0f2327",
-                                  color: "white",
-                                }}
-                              >
-                                Action
-                              </th>
+                             
                             </tr>
                           </thead>
 
@@ -914,7 +764,7 @@ const flatData = flatDataMain.filter(
                                           className="small p-0"
                                           style={{ zIndex: 2 }}
                                         >
-                                          {row?.betGame ? row?.betGame == "CASINO" 
+                                           {row?.betGame ? row?.betGame == "CASINO" 
                                             ? "CASINO"
                                             : row?.matchName : row?.narration}
                                         </span>
@@ -931,29 +781,9 @@ const flatData = flatDataMain.filter(
                                         {reversedBalances[index]?.toFixed(2)}
                                       </td>
 
-                                      <td
-                                        className="small p-1"
-                                        style={{ zIndex: 2 }}
-                                      >
-                                        SELF
-                                      </td>
+                                     
 
-                                      {row?.settletype ? (
-                                        <td
-                                          className="small p-1"
-                                          style={{ zIndex: 2 }}
-                                        >
-                                          <button
-                                            onClick={() =>
-                                              handleDelete(row?._id)
-                                            }
-                                          >
-                                            Delete
-                                          </button>
-                                        </td>
-                                      ) : (
-                                        "-"
-                                      )}
+                                     
                                     </tr>
                                   ))}
                               </tbody>
@@ -978,4 +808,4 @@ const flatData = flatDataMain.filter(
   );
 };
 
-export default ClientTransactions;
+export default ChaMyledgerChildTxnCopy;

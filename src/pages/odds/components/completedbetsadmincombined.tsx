@@ -24,6 +24,8 @@ import { Modal } from "react-bootstrap";
 import BetDetailsModal from "./BetDetailsModal";
 import { AxiosResponse } from "axios";
 import userService from "../../../services/user.service";
+import UserService from "../../../services/user.service";
+
 
 const MyBetComponent22AdminCombined = () => {
   const [getMyAllBet, setMyAllBet] = React.useState<IBet[]>([]);
@@ -48,6 +50,21 @@ const MyBetComponent22AdminCombined = () => {
 
   const [showModal, setShowModal] = React.useState(false);
 const [selectedBets, setSelectedBets] = React.useState([]);
+
+ const [shared, setShared] = React.useState<any>();
+   React.useEffect(() => {
+      // const userState = useAppSelector<{ user: User }>(selectUserData);
+      const username: any = userState?.user?.username;
+  
+      console.log(username, "testagentmaster");
+      UserService.getParentUserDetail(username).then(
+        (res: AxiosResponse<any>) => {
+          console.log(res, "check balance for parent");
+          const thatb = res?.data?.data[0];
+          setShared(thatb?.share);
+        }
+      );
+    }, [userState]);
 
 const [fancyPercent, setFancyPercent] = React.useState<number>(0);
 
@@ -149,7 +166,7 @@ const handleShowDetails = (selectionName:any) => {
       plus: plus.toFixed(2),
       minus: minus.toFixed(2),
     };
-  }, [getMyAllBet]);
+  }, [getMyAllBet,fancyPercent]);
 
   // Combine bets by selectionName
 const combinedBets = React.useMemo(() => {
@@ -435,8 +452,9 @@ const combinedBets = React.useMemo(() => {
                   className="no-wrap px-2"
                   style={{ background: bet.isBack ? "#72BBEF" : "#faa9ba" }}
                 >
-                  {/* {(Number(bet?.totalPL)).toFixed(2)} */}
-                  {(
+                  {userState?.user?.role == "dl" ?  (
+  (parseFloat(bet?.totalPL) * shared) / 100
+).toFixed(2) :  (
   (parseFloat(bet?.totalPL) * fancyPercent) / 100
 ).toFixed(2)}
                 </td>
