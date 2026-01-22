@@ -181,7 +181,7 @@ const ActiveMatches = () => {
               </thead>
               <tbody>
                 {Object.keys(matches).length > 0 &&
-                  matches.docs.map((match: IMatch) => (
+                  matches.docs.map((match: any,) => (
                     <tr key={match.matchId}>
                       <td>
                         <i
@@ -219,7 +219,8 @@ const ActiveMatches = () => {
                       </td>
 
                       <td>
-                        {match.result && (
+                        {/* {match.result && match.resultstring && ( */}
+                        {match?.resultstring && (
                           <a href='#' onClick={(e: any) => rollbackResult(e, match)}>
                             Rollback Result
                           </a>

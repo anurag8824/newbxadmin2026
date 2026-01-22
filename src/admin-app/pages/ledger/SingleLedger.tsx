@@ -324,7 +324,7 @@ const AllClientLedger = () => {
                     </th>
                     {/* <th className="final-amount">SETTLED</th> */}
                     <th
-                      className="final-amount text-white bg-final bg-green"
+                      className="final-amount text-white bg-final bg-green d-none"
                       style={{ background: "#0f2327", color: "white" }}
                     >
                       <span>
@@ -358,7 +358,7 @@ const AllClientLedger = () => {
                       {/* <td>{row.amount.toFixed(2)}</td> */}
                       <td>{(row.amount + row.settled).toFixed(2)}</td>
                       {/* <td>{row.settled.toFixed(2)}</td> */}
-                      <td  className="">
+                      <td  className="d-none">
                         <CustomLink  to={`/client-transactions/${sendId}/${row.ChildId}`}>
                           <svg
                             stroke="currentColor"
@@ -432,7 +432,7 @@ const AllClientLedger = () => {
                     </th>
                     {/* <th className="final-amount">SETTLED</th> */}
                     <th
-                      className="final-amount text-white bg-final bg-green"
+                      className="final-amount text-white bg-final bg-green d-none"
                       style={{ background: "#0f2327", color: "white" }}
                     >
                       <span>
@@ -469,7 +469,7 @@ const AllClientLedger = () => {
                       <td>{(row.amount + row.settled).toFixed(2)}</td>
                       {/* <td>{row.settled.toFixed(2)}</td> */}
                       {/* <td className="bg-final2 text-white">{row.final.toFixed(2)}</td> */}
-                      <td className="">
+                      <td className="d-none">
                       <CustomLink  to={`/client-transactions/${sendId}/${row.ChildId}`}>
                           <svg
                             stroke="currentColor"
